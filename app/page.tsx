@@ -1,3 +1,4 @@
+import Link from "next/link";
 import DrugTable from "./components/DrugTable";
 
 export default function Home() {
@@ -5,7 +6,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-blue-600 text-white py-6">
-        <h1 className="text-3xl font-bold text-center">ADDRESS</h1>
+        <h1 className="text-3xl font-bold text-center"> ADDRESS </h1>
       </header>
 
       {/* Main Content Section */}
