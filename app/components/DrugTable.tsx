@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 
-type Drug = {
+interface Drug {
+  id?: number;
   drugName: string;
   latency: number;
   drugPresent: number;
@@ -9,41 +10,41 @@ type Drug = {
   dechallenge: number;
   drugNotoriety: number;
   intermediateScore: number;
-};
+}
 
-const DrugTable = () => {
-  const [drugs, setDrugs] = useState<Drug[]>([
-    {
-      drugName: "Acetaminophen",
-      latency: -1,
-      drugPresent: 0,
-      preRechallenge: -2,
-      dechallenge: 0,
-      drugNotoriety: 2,
-      intermediateScore: -1,
-    },
-  ]);
+function DrugTable() {
+  const [drugs, setDrugs] = useState<Drug[]>([]);
+  const [selectedDrug, setSelectedDrug] = useState<Drug | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleAddDrug = () => {
-    setDrugs([
-      ...drugs,
-      {
-        drugName: "",
-        latency: 0,
-        drugPresent: 0,
-        preRechallenge: 0,
-        dechallenge: 0,
-        drugNotoriety: 0,
-        intermediateScore: 0,
-      },
-    ]);
+    setSelectedDrug({
+      drugName: "",
+      latency: 0,
+      drugPresent: 0,
+      preRechallenge: 0,
+      dechallenge: 0,
+      drugNotoriety: 0,
+      intermediateScore: 0,
+    });
+    setIsFormOpen(true);
   };
 
-  const handleRemoveDrug = (index: number) => {
-    setDrugs(drugs.filter((_, i) => i !== index));
+  const handleEditDrug = (drug: Drug) => {
+    setSelectedDrug(drug);
+    setIsFormOpen(true);
   };
 
-  const getRowTotal = (drug: Drug) => {
+  const handleSaveDrug = (drug: Drug) => {
+    if (drug.id) {
+      setDrugs(drugs.map((d) => (d.id === drug.id ? drug : d)));
+    } else {
+      setDrugs([...drugs, { ...drug, id: Date.now() }]);
+    }
+    setIsFormOpen(false);
+  };
+
+  const calculateFinalValue = (drug: Drug) => {
     return (
       drug.latency +
       drug.drugPresent +
@@ -54,127 +55,138 @@ const DrugTable = () => {
     );
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number,
-    field: keyof Drug
-  ) => {
-    const updatedDrugs = [...drugs];
-    updatedDrugs[index] = {
-      ...updatedDrugs[index],
-      [field]: Number(e.target.value),
-    };
-    setDrugs(updatedDrugs);
-  };
-
   return (
-    <div className="container mx-auto p-4">
-      <table className="min-w-full border-collapse table-auto">
+    <div className="p-6">
+      <button
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
+        onClick={handleAddDrug}
+      >
+        Add Drug
+      </button>
+      <table className="w-full border-collapse border border-gray-300">
         <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-4 py-2 text-left">Drug Name</th>
-            <th className="border px-4 py-2 text-left">Latency</th>
-            <th className="border px-4 py-2 text-left">Drug Present</th>
-            <th className="border px-4 py-2 text-left">Pre Rechallenge</th>
-            <th className="border px-4 py-2 text-left">Dechallenge</th>
-            <th className="border px-4 py-2 text-left">Drug Notoriety</th>
-            <th className="border px-4 py-2 text-left">Intermediate Score</th>
-            <th className="border px-4 py-2 text-left">Final Value</th>
-            <th className="border px-4 py-2 text-left">Actions</th>
+          <tr className="bg-gray-200">
+            <th className="border border-gray-300 px-4 py-2">Drug Name</th>
+            <th className="border border-gray-300 px-4 py-2">Latency</th>
+            <th className="border border-gray-300 px-4 py-2">Drug Present</th>
+            <th className="border border-gray-300 px-4 py-2">
+              Pre-Rechallenge
+            </th>
+            <th className="border border-gray-300 px-4 py-2">Dechallenge</th>
+            <th className="border border-gray-300 px-4 py-2">Drug Notoriety</th>
+            <th className="border border-gray-300 px-4 py-2">
+              Intermediate Score
+            </th>
+            <th className="border border-gray-300 px-4 py-2">Final Score</th>
           </tr>
         </thead>
         <tbody>
-          {drugs.map((drug, index) => (
-            <tr key={index} className="bg-white hover:bg-gray-50">
-              <td className="border px-4 py-2">
-                <input
-                  type="text"
-                  value={drug.drugName}
-                  onChange={(e) => {
-                    const updatedDrugs = [...drugs];
-                    updatedDrugs[index].drugName = e.target.value;
-                    setDrugs(updatedDrugs);
-                  }}
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+          {drugs.map((drug) => (
+            <tr
+              key={drug.id}
+              className="hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleEditDrug(drug)}
+            >
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.drugName}
               </td>
-              <td className="border px-4 py-2">
-                <input
-                  type="number"
-                  value={drug.latency}
-                  onChange={(e) => handleInputChange(e, index, "latency")}
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.latency}
               </td>
-              <td className="border px-4 py-2">
-                <input
-                  type="number"
-                  value={drug.drugPresent}
-                  onChange={(e) => handleInputChange(e, index, "drugPresent")}
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.drugPresent}
               </td>
-              <td className="border px-4 py-2">
-                <input
-                  type="number"
-                  value={drug.preRechallenge}
-                  onChange={(e) =>
-                    handleInputChange(e, index, "preRechallenge")
-                  }
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.preRechallenge}
               </td>
-              <td className="border px-4 py-2">
-                <input
-                  type="number"
-                  value={drug.dechallenge}
-                  onChange={(e) => handleInputChange(e, index, "dechallenge")}
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.dechallenge}
               </td>
-              <td className="border px-4 py-2">
-                <input
-                  type="number"
-                  value={drug.drugNotoriety}
-                  onChange={(e) => handleInputChange(e, index, "drugNotoriety")}
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.drugNotoriety}
               </td>
-              <td className="border px-4 py-2">
-                <input
-                  type="number"
-                  value={drug.intermediateScore}
-                  onChange={(e) =>
-                    handleInputChange(e, index, "intermediateScore")
-                  }
-                  className="w-full border px-2 py-1 rounded-md"
-                />
+              <td className="border border-gray-300 px-4 py-2">
+                {drug.intermediateScore}
               </td>
-              <td className="border px-4 py-2">
-                <span>{getRowTotal(drug)}</span>
-              </td>
-              <td className="border px-4 py-2">
-                <button
-                  onClick={() => handleRemoveDrug(index)}
-                  className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-700"
-                >
-                  X
-                </button>
+              <td className="border border-gray-300 px-4 py-2">
+                {calculateFinalValue(drug)}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div className="mt-4">
-        <button
-          onClick={handleAddDrug}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          Add Drug
-        </button>
+      {isFormOpen && selectedDrug && (
+        <DrugForm
+          drug={selectedDrug}
+          onSave={handleSaveDrug}
+          onClose={() => setIsFormOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+interface DrugFormProps {
+  drug: Drug;
+  onSave: (drug: Drug) => void;
+  onClose: () => void;
+}
+
+function DrugForm({ drug, onSave, onClose }: DrugFormProps) {
+  const [formData, setFormData] = useState<Drug>(drug);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+        <h3 className="text-lg font-semibold mb-4">
+          {drug.id ? "Edit Drug" : "Add Drug"}
+        </h3>
+        {Object.entries(formData).map(
+          ([key, value]) =>
+            key !== "id" && (
+              <div key={key} className="mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  {key.replace(/([A-Z])/g, " $1").trim()}
+                </label>
+                <input
+                  name={key}
+                  type="number"
+                  value={value as number}
+                  onChange={handleChange}
+                  placeholder={key.replace(/([A-Z])/g, " $1").trim()}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+            )
+        )}
+        <div className="flex justify-end space-x-2">
+          <button
+            className="px-4 py-2 bg-green-500 text-white rounded-lg"
+            onClick={() => onSave(formData)}
+          >
+            Save
+          </button>
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded-lg"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default DrugTable;
+
+`
+TO-DO
+- Fix Name such that you can type and it is saved
+- Fix Final Calculation 
+
+`;
